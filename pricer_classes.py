@@ -4,7 +4,8 @@ from operator import attrgetter
 
 
 class Add_Order(object):
-
+	"""Add order class."""
+	
 	def __init__(self, details):
 		self.details = details.split()
 		self.timestamp = int(self.details[0])
@@ -16,6 +17,7 @@ class Add_Order(object):
 
 
 class Reduce_Order(object):
+	"""Reduce order class."""
 
 	def __init__(self, details):
 		self.details = details.split()
@@ -38,14 +40,23 @@ class Order_Book(object):
 		self.total_potential_price_pre_trade = 0
 		self.total_potential_price_post_trade = 0
 
+
 	def check_size(self):
+		"""Check the size of the book.
+		Return the value.
+		"""
+
 		size = 0
 		for order in self.orders:
 			size += order.size
 
 		return size
 
+
 	def check_total_price(self):
+		"""How much would it cost to execute an order of target_size shares?
+		Return the value.
+		"""
 
 		if self.total_size_post_order < self.target_size:
 			return 'NA'
@@ -75,11 +86,12 @@ class Order_Book(object):
 
 			return total_price 
 
+
 	def add_order(self, order):
 		"""Add an order to the book.
+		Update the total size of the book.
+		Update the total price to execute an order of target_size shares.
 		Log the timestamp of the order.
-		TO DO: Update total_size.
-		TO DO: Update total_potential_price
 		"""
 
 		# what's the current size of the book?
@@ -87,23 +99,21 @@ class Order_Book(object):
 		# what's the current prize of the book (up to target_price shares)
 		self.total_potential_price_pre_trade = self.check_total_price()
 
-		# update time stamp
-		self.update_timestamp(order)
-		
-		#print('<><><> BOOK BEFORE ADD ORDER <><><>')
-		#self.show_book() # print the book
-		self.orders.append(order)
+		self.update_timestamp(order) # update time stamp
+		self.orders.append(order) # add the order to the book
 
 		
 	def update_timestamp(self, order):
 		"""Update the self.current_timestamp with the latest order.timestamp."""
+		
 		self.current_timestamp = order.timestamp
 
 
 	def check_trade(self):
 		"""Check book for total size > target_size.
-		Return true or false.
+		Return boolean.
 		"""
+
 		return self.total_size_post_order >= self.target_size
 
 
@@ -117,12 +127,7 @@ class Order_Book(object):
 		self.total_size_pre_order = self.check_size()
 		# what's the current prize of the book (up to target_price shares)
 		self.total_potential_price_pre_trade = self.check_total_price()
-
-
 		self.update_timestamp(order) # update timestamp
-
-		#print('<><><> BOOK BEFORE REDUCE ORDER <><><>')
-		#self.show_book() # print the book
 
 		reduce_order_id = order.order_id
 		reduce_order_size = order.size
@@ -131,9 +136,6 @@ class Order_Book(object):
 				order.size -= reduce_order_size
 
 		self.remove_empty() # remove empty orders
-		#print('<><><> BOOK AFTER REDUCE ORDER <><><>')
-		#self.show_book() # print the book
-
 		# size of order book after order added
 		self.total_size_post_order = self.check_size()
 		# what's the prize of the book (up to target_price shares) after order
@@ -148,26 +150,29 @@ class Order_Book(object):
 
 
 	def send_output(self):
-		# if starting total shares > target_size, there will be output
-		#print('\n'+ ' '*40 + 'OUTPUT')
-		#print(' '*40+'{} {} {}\n'.format(self.current_timestamp, self.my_side, self.total_potential_price_post_trade))
-		#with open('my_output.txt', 'a') as f:
-		#	f.write('{} {} {}\n'.format(self.current_timestamp, self.my_side, self.total_potential_price_post_trade))
+		"""Send the timestamp, order side (buy/sell), and expense/income to standard output."""
 
 		sys.stdout.write('{} {} {}\n'.format(self.current_timestamp, self.my_side, self.total_potential_price_post_trade))
 
+
 	def show_book(self):
+		"""Print the orders in the book."""
+
 		for i, orders in enumerate(self.orders):
 			print('#{}: {}'.format(i+1, orders.details))
 		print('\n')
 
+
 	def show_book_details(self):
+		"""Show details of the book."""
+
 		print('Timestamp: {}'.format(self.current_timestamp))
 		print('Our Side: {}'.format(self.my_side))
 		print('Total Size Pre: {}'.format(self.total_size_pre_order))
 		print('Total Size Post: {}'.format(self.total_size_post_order))
 		print('Total Price Pre: {}'.format(self.total_potential_price_pre_trade))
 		print('Total Price Post: {}'.format(self.total_potential_price_post_trade))
+
 
 class Buy_Book(Order_Book):
 	"""Buy book class."""
@@ -181,6 +186,7 @@ class Buy_Book(Order_Book):
 		self.total_potential_price_pre_trade = 0
 		self.total_potential_price_post_trade = 0
 	
+
 	def sort_orders(self):
 		"""Sort the book based on the price (highest to lowest)
 		and then the timestamp (earliest to latest).
@@ -227,17 +233,18 @@ class Sell_Book(Order_Book):
 		self.total_potential_price_post_trade = self.check_total_price()
 
 
-
 def add_logic(order, order_book):
+	"""Logic when an add order enters standard input."""
+
 	order_book.add_order(order) # add the order
 	order_book.sort_orders() # sort the orders
 	if order_book.total_potential_price_pre_trade != order_book.total_potential_price_post_trade:
 		order_book.send_output() # send output to stdout (timestamp, side, total_price)
-	#order_book.show_book_details()
 
 def reduce_logic(order, order_book):
+	"""Logic when a reduce order enters standard input."""
+
 	order_book.reduce_order(order) # reduce the order
 	if order_book.total_potential_price_pre_trade != order_book.total_potential_price_post_trade:
 		order_book.send_output() # send output to stdout (timestamp, side, total_price)
-	#order_book.show_book_details()
 
