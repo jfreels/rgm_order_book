@@ -152,7 +152,11 @@ class Order_Book(object):
 	def send_output(self):
 		"""Send the timestamp, order side (buy/sell), and expense/income to standard output."""
 
-		sys.stdout.write('{} {} {}\n'.format(self.current_timestamp, self.my_side, self.total_potential_price_post_trade))
+		try:
+			price = '{0:.2f}'.format(self.total_potential_price_post_trade)
+		except ValueError:
+			price = self.total_potential_price_post_trade
+		sys.stdout.write('{} {} {}\n'.format(self.current_timestamp, self.my_side, price))
 
 
 	def show_book(self):
